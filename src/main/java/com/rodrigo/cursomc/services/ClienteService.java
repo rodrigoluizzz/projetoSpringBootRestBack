@@ -1,9 +1,9 @@
 package com.rodrigo.cursomc.services;
 
+import java.awt.image.BufferedImage;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
-import java.awt.image.BufferedImage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -94,6 +94,20 @@ public class ClienteService {
 	
 	public List<Cliente> findAll(){
 		return repo.findAll();
+	}
+	
+	public Cliente findByEmail(String email) {
+		UserSS user = UserService.authenticated();
+		if (user == null || !user.hasRole(Perfil.ADMIN) && !email.equals(user.getUsername())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+
+		Cliente obj = repo.findByEmail(email);
+		if (obj == null) {
+			throw new ObjectNotFoundException(
+					"Objeto não encontrado! Id: " + user.getId() + ", Tipo: " + Cliente.class.getName());
+		}
+		return obj;
 	}
 	
 	public Page<Cliente> findPage(Integer page, Integer linesPerPage, String orderBy, String direction){
